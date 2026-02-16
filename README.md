@@ -1,53 +1,44 @@
-Task Tracker CLI
+# Task Tracker CLI
 
 A simple command-line task manager built in Go.
 
-Task Tracker allows you to track and manage your tasks directly from the terminal.
-You can add, update, delete, and manage tasks stored in a JSON file.
+Task Tracker allows you to track and manage your tasks directly from the terminal. You can add, update, delete, and manage tasks stored in a JSON file.
 
 This project helps practice:
+- Working with the filesystem
+- Handling CLI arguments
+- Structs and JSON encoding/decoding
+- Project structure in Go
+- Error handling
+- Writing modular code
 
-Working with the filesystem
+## Features
 
-Handling CLI arguments
+- Add tasks
+- Update tasks
+- Delete tasks
+- Store tasks in `tasks.json`
+- UUID-based task IDs
+- Simple CLI interface
 
-Structs and JSON encoding/decoding
-
-Project structure in Go
-
-Error handling
-
-Writing modular code
-
-Features
-
-Add tasks
-
-Update tasks
-
-Delete tasks
-
-Store tasks in tasks.json
-
-UUID-based task IDs
-
-Simple CLI interface
-
-Usage
+## Usage
 
 Run the app using:
-
+```bash
 ./run.sh add "Buy milk"
 ./run.sh update <id> "New description"
 ./run.sh delete <id>
 
 
-Or build and run manually:
+
+bash
 
 go build -o task
 ./task add "Buy milk"
 
 Project Structure
+text
+
 .
 ├── app/
 ├── go.mod
@@ -70,25 +61,22 @@ Project Structure
 
 How It Works
 
-Tasks are stored in tasks.json
+Tasks are stored in tasks.json. Each task has:
 
-Each task has:
+    UUID ID
 
-UUID ID
+    Description
 
-Description
+    Completion status
 
-Completion status
+    CreatedAt timestamp
 
-CreatedAt timestamp
+    UpdatedAt timestamp
 
-UpdatedAt timestamp
-
-The CLI reads user input using os.Args
-
-Tasks are loaded, modified, then saved back to JSON
-
+The CLI reads user input using os.Args. Tasks are loaded, modified, then saved back to JSON.
 Example Task Format (JSON)
+json
+
 [
   {
     "id": "c4f1c2e8-8a8e-4e9a-9e0e-6b9b8a7c1d3f",
@@ -101,14 +89,17 @@ Example Task Format (JSON)
 
 Future Improvements
 
-Mark task as completed
+    Mark task as completed
 
-List all tasks
+    List all tasks
 
-Filter by status
+    Filter by status
 
-Add due dates
+    Add due dates
 
-Use Cobra for advanced CLI commands
+    Use Cobra for advanced CLI commands
 
-Add tests
+    Add tests
+
+text
+
