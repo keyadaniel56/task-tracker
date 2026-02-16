@@ -49,16 +49,16 @@ go build -o task
 
 Project Structure
 .
-├── app
+├── app/
 ├── go.mod
 ├── go.sum
-├── internal
-│   ├── app
+├── internal/
+│   ├── app/
 │   │   └── app.go
-│   ├── handlers
-│   ├── modals
+│   ├── handlers/
+│   ├── modals/
 │   │   └── task.go
-│   └── utils
+│   └── utils/
 │       ├── file.go
 │       ├── task.go
 │       └── type.go
