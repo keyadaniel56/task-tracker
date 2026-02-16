@@ -1,0 +1,290 @@
+
+Conversation opened. 1 unread message.
+
+Skip to content
+Using Gmail with screen readers
+1 of 634
+(no subject)
+Inbox
+Andrew Okutu <andreaokutu@gmail.com>
+	
+Attachments11:03 AM (1 hour ago)
+	
+	
+to me
+
+ 3 Attachments
+  •  Scanned by Gmail
+
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+type Point struct {
+	x, y int
+}
+
+type Tetromino struct {
+	blocks []Point
+	id     rune
+}
+
+func errorExit() {
+	fmt.Println("ERROR")
+	os.Exit(0)
+}
+
+/* ===================== Parsing ===================== */
+
+func parseFile(path string) []Tetromino {
+	file, err := os.Open(path)
+	if err != nil {
+		errorExit()
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var lines []string
+
+	for scanner.Scan() {
+		line := strings.TrimRight(scanner.Text(), "\r")
+		lines = append(lines, line)
+	}
+	if err := scanner.Err(); err != nil {
+		errorExit()
+	}
+
+	// Remove trailing empty lines
+	for len(lines) > 0 && strings.TrimSpace(lines[len(lines)-1]) == "" {
+		lines = lines[:len(lines)-1]
+	}
+
+	if len(lines) == 0 {
+		errorExit()
+	}
+
+	var tets []Tetromino
+
+	for i := 0; i < len(lines); {
+		if i+4 > len(lines) {
+			errorExit()
+		}
+
+		grid := make([]string, 4)
+		for j := 0; j < 4; j++ {
+			grid[j] = strings.TrimSpace(lines[i+j])
+		}
+
+		tet := parseTetromino(grid, rune('A'+len(tets)))
+		tets = append(tets, tet)
+
+		i += 4
+
+		// Separator (if not end of file)
+		if i < len(lines) {
+			if strings.TrimSpace(lines[i]) != "" {
+				errorExit()
+			}
+			i++
+		}
+	}
+
+	if len(tets) == 0 {
+		errorExit()
+	}
+
+	return tets
+}
+
+func parseTetromino(grid []string, id rune) Tetromino {
+	var blocks []Point
+
+	for y, row := range grid {
+		if len(row) != 4 {
+			errorExit()
+		}
+
+		for x, c := range row {
+			if c == '#' {
+				blocks = append(blocks, Point{x, y})
+			} else if c != '.' {
+				errorExit()
+			}
+		}
+	}
+
+	if len(blocks) != 4 || !isConnected(blocks) {
+		errorExit()
+	}
+
+	normalize(blocks)
+
+	return Tetromino{
+		blocks: blocks,
+		id:     id,
+	}
+}
+
+/* ===================== Validation ===================== */
+
+func isConnected(blocks []Point) bool {
+	visited := make(map[Point]bool)
+
+	var dfs func(Point)
+	dfs = func(p Point) {
+		visited[p] = true
+
+		directions := []Point{
+			{1, 0}, {-1, 0},
+			{0, 1}, {0, -1},
+		}
+
+		for _, d := range directions {
+			np := Point{p.x + d.x, p.y + d.y}
+			if contains(blocks, np) && !visited[np] {
+				dfs(np)
+			}
+		}
+	}
+
+	dfs(blocks[0])
+	return len(visited) == 4
+}
+
+func contains(blocks []Point, p Point) bool {
+	for _, b := range blocks {
+		if b == p {
+			return true
+		}
+	}
+	return false
+}
+
+func normalize(blocks []Point) {
+	minX, minY := blocks[0].x, blocks[0].y
+
+	for _, b := range blocks {
+		if b.x < minX {
+			minX = b.x
+		}
+		if b.y < minY {
+			minY = b.y
+		}
+	}
+
+	for i := range blocks {
+		blocks[i].x -= minX
+		blocks[i].y -= minY
+	}
+}
+
+/* ===================== Solver ===================== */
+
+func solve(tets []Tetromino) [][]rune {
+	size := minSquareSize(len(tets))
+
+	for {
+		board := makeBoard(size)
+		if backtrack(board, tets, 0) {
+			return board
+		}
+		size++
+	}
+}
+
+func backtrack(board [][]rune, tets []Tetromino, idx int) bool {
+	if idx == len(tets) {
+		return true
+	}
+
+	t := tets[idx]
+
+	for y := 0; y < len(board); y++ {
+		for x := 0; x < len(board); x++ {
+			if canPlace(board, t, x, y) {
+				place(board, t, x, y)
+
+				if backtrack(board, tets, idx+1) {
+					return true
+				}
+
+				remove(board, t, x, y)
+			}
+		}
+	}
+
+	return false
+}
+
+func canPlace(board [][]rune, t Tetromino, x, y int) bool {
+	for _, b := range t.blocks {
+		nx := x + b.x
+		ny := y + b.y
+
+		if nx < 0 || ny < 0 || ny >= len(board) || nx >= len(board) {
+			return false
+		}
+
+		if board[ny][nx] != '.' {
+			return false
+		}
+	}
+
+	return true
+}
+
+func place(board [][]rune, t Tetromino, x, y int) {
+	for _, b := range t.blocks {
+		board[y+b.y][x+b.x] = t.id
+	}
+}
+
+func remove(board [][]rune, t Tetromino, x, y int) {
+	for _, b := range t.blocks {
+		board[y+b.y][x+b.x] = '.'
+	}
+}
+
+/* ===================== Utils ===================== */
+
+func minSquareSize(n int) int {
+	size := 2
+	for size*size < n*4 {
+		size++
+	}
+	return size
+}
+
+func makeBoard(size int) [][]rune {
+	board := make([][]rune, size)
+	for i := range board {
+		board[i] = []rune(strings.Repeat(".", size))
+	}
+	return board
+}
+
+func printBoard(board [][]rune) {
+	for _, row := range board {
+		fmt.Println(string(row))
+	}
+}
+
+/* ===================== main ===================== */
+
+func main() {
+	if len(os.Args) != 2 {
+		errorExit()
+	}
+
+	tets := parseFile(os.Args[1])
+	board := solve(tets)
+	printBoard(board)
+}
+
+main.go
+Displaying sample.txt.
